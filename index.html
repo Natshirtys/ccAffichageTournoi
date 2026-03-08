@@ -248,6 +248,31 @@
       font-size: .72rem; color: var(--muted);
     }
 
+    /* ── COMPO POULE ─────────────────────────────────────── */
+    .pool-compo {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 7px;
+      margin-bottom: 14px;
+    }
+    .pool-compo-team {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 9px;
+      padding: 9px 11px;
+      box-shadow: 0 1px 3px rgba(0,0,0,.06);
+    }
+    .pool-compo-name {
+      font-weight: 800;
+      font-size: .85rem;
+      color: var(--primary);
+    }
+    .pool-compo-club {
+      font-size: .73rem;
+      color: var(--muted);
+      margin-top: 1px;
+    }
+
     /* ── RÈGLEMENT ───────────────────────────────────────── */
     .rule-section {
       margin-bottom: 14px;
@@ -526,6 +551,20 @@ function parseCSV(text) {
   return rows;
 }
 
+// ─── PARSE TIRAGE ─────────────────────────────────────────────────────────────
+function parseTirage(rows) {
+  const compo = {};
+  for (const row of rows) {
+    const m = (row[0] || '').match(/^POULE\s+([A-D])/);
+    if (!m) continue;
+    compo[m[1]] = [row[1], row[2], row[3], row[4]].filter(Boolean).map(t => {
+      const pm = t.match(/^(.+?)\s*\((.+)\)$/);
+      return pm ? { name: pm[1].trim(), club: pm[2].trim() } : { name: t.trim(), club: '' };
+    });
+  }
+  return compo;
+}
+
 // ─── PARSE POULES ─────────────────────────────────────────────────────────────
 function parsePoules(rows) {
   const pools = {
@@ -602,16 +641,28 @@ function parseChampionnat(rows) {
 }
 
 // ─── RENDER POULE ─────────────────────────────────────────────────────────────
-function renderPool(letter, data) {
+function renderPool(letter, data, teams) {
   if (!data.matches.length) return '<div class="loading">Aucune donnée disponible.</div>';
+
+  let html = '';
+
+  // ---- Composition de la poule
+  if (teams && teams.length) {
+    html += `<div class="pool-compo">`;
+    for (const t of teams) {
+      html += `<div class="pool-compo-team">
+        <div class="pool-compo-name">${t.name}</div>
+        ${t.club ? `<div class="pool-compo-club">${t.club}</div>` : ''}
+      </div>`;
+    }
+    html += `</div>`;
+  }
 
   // Grouper par tour
   const byTour = {};
   for (const m of data.matches) {
     (byTour[m.tour] = byTour[m.tour] || []).push(m);
   }
-
-  let html = '';
 
   // ---- Matches par tour
   for (const tour of Object.keys(byTour).sort()) {
@@ -746,19 +797,21 @@ async function loadAll() {
   document.getElementById('status-bar').textContent = '';
 
   try {
-    const [poulesText, champAText, champBText] = await Promise.all([
+    const [poulesText, champAText, champBText, tirageText] = await Promise.all([
       fetch(csvUrl('POULES')).then(r => { if (!r.ok) throw new Error('POULES ' + r.status); return r.text(); }),
       fetch(csvUrl('CHAMPIONNAT A')).then(r => { if (!r.ok) throw new Error('CHAMP A ' + r.status); return r.text(); }),
       fetch(csvUrl('CHAMPIONNAT B')).then(r => { if (!r.ok) throw new Error('CHAMP B ' + r.status); return r.text(); }),
+      fetch(csvUrl('tirage')).then(r => r.ok ? r.text() : '').catch(() => ''),
     ]);
 
-    const pools = parsePoules(parseCSV(poulesText));
+    const pools  = parsePoules(parseCSV(poulesText));
     const champA = parseChampionnat(parseCSV(champAText));
     const champB = parseChampionnat(parseCSV(champBText));
+    const compo  = tirageText ? parseTirage(parseCSV(tirageText)) : {};
 
     // Poules
     for (const p of ['A', 'B', 'C', 'D']) {
-      document.getElementById('pool-' + p).innerHTML = renderPool(p, pools[p]);
+      document.getElementById('pool-' + p).innerHTML = renderPool(p, pools[p], compo[p]);
     }
 
     // Championnats : visibles seulement si tous les matches de poule ont un vainqueur
