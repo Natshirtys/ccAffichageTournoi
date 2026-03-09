@@ -161,7 +161,6 @@
     }
     .badge-tour {
       display: inline-block;
-      background: var(--secondary);
       color: #fff;
       border-radius: 4px;
       padding: 1px 5px;
@@ -169,6 +168,9 @@
       font-weight: 700;
       margin-bottom: 4px;
     }
+    .tour-1 { background: #2980b9; }
+    .tour-2 { background: #8e44ad; }
+    .tour-3 { background: #d35400; }
 
     .team-name { font-weight: 700; text-align: left; }
     .team-winner { color: var(--success); }
@@ -417,7 +419,7 @@ function renderPoolCol(letter, data) {
     <div class="card-title">Matchs</div>
     <div class="table-wrap"><table>
       <thead><tr>
-        <th>T.</th><th>Terrain</th><th style="text-align:left">Équipe 1</th><th>Score</th><th style="text-align:left">Équipe 2</th>
+        <th>Tour</th><th>Terrain</th><th style="text-align:left">Équipe 1</th><th>Score</th><th style="text-align:left">Équipe 2</th>
       </tr></thead><tbody>`;
 
   for (const tour of Object.keys(byTour).sort()) {
@@ -428,7 +430,7 @@ function renderPoolCol(letter, data) {
       const w1 = w && w === m.eq1 ? 'team-winner' : '';
       const w2 = w && w === m.eq2 ? 'team-winner' : '';
       html += `<tr>
-        <td><span class="badge-tour">${m.tour}</span></td>
+        <td><span class="badge-tour tour-${m.tour}">Tour ${m.tour}</span></td>
         <td><span class="badge-terrain">${m.terrain}</span></td>
         <td class="team-name ${w1}">${m.eq1}</td>
         <td class="score-cell">${s1}<span class="score-sep">-</span>${s2}</td>
