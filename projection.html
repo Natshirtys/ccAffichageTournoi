@@ -440,8 +440,9 @@ function renderPoolCol(letter, data) {
   }
   html += `</tbody></table></div></div>`;
 
-  // Classement
-  if (data.classement.length) {
+  // Classement : affiché seulement si au moins un match a été joué
+  const hasResults = data.matches.some(m => m.winner);
+  if (data.classement.length && hasResults) {
     html += `<div class="card">
       <div class="card-title">Classement</div>
       <div class="table-wrap"><table>
