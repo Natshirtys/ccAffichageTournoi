@@ -440,9 +440,9 @@ function renderPoolCol(letter, data) {
   }
   html += `</tbody></table></div></div>`;
 
-  // Classement : affiché seulement si au moins une équipe a des victoires/défaites renseignées
-  const hasResults = data.classement.some(c => (c.v || '').trim() !== '' || (c.d || '').trim() !== '');
-  if (data.classement.length && hasResults) {
+  // Classement : affiché seulement si au moins une victoire dans la poule
+  const totalVictoires = data.classement.reduce((sum, c) => sum + parseInt(c.v || '0', 10), 0);
+  if (data.classement.length && totalVictoires > 0) {
     html += `<div class="card">
       <div class="card-title">Classement</div>
       <div class="table-wrap"><table>
