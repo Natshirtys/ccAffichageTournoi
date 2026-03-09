@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Projection – Tournoi du 14 mars 2026</title>
+  <style>
+    :root {
+      --primary:   #1a3a5c;
+      --secondary: #2980b9;
+      --accent:    #f39c12;
+      --success:   #27ae60;
+      --bg:        #f0f4f8;
+      --card:      #ffffff;
+      --text:      #2c3e50;
+      --muted:     #7f8c8d;
+      --border:    #dde3ea;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── HEADER ─────────────────────────────────────────── */
+    header {
+      background: var(--primary);
+      color: #fff;
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+    header h1 { font-size: 1.4rem; font-weight: 800; letter-spacing: .02em; }
+    header p  { font-size: .8rem; opacity: .7; margin-top: 2px; }
+
+    .refresh-btn {
+      padding: 8px 22px;
+      background: var(--secondary);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: .95rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity .15s;
+      white-space: nowrap;
+    }
+    .refresh-btn:active { opacity: .75; }
+    .refresh-btn:disabled { opacity: .5; cursor: wait; }
+
+    /* ── TABS ────────────────────────────────────────────── */
+    .main-tabs {
+      display: flex;
+      background: var(--primary);
+      border-top: 1px solid rgba(255,255,255,.1);
+      flex-shrink: 0;
+    }
+    .main-tab-btn {
+      padding: 10px 28px;
+      background: transparent;
+      border: none;
+      color: rgba(255,255,255,.6);
+      font-size: .9rem;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: .04em;
+      border-bottom: 3px solid transparent;
+      transition: all .2s;
+    }
+    .main-tab-btn.active {
+      color: #fff;
+      border-bottom-color: var(--accent);
+    }
+
+    .tab-panel { display: none; flex: 1; overflow-y: auto; }
+    .tab-panel.active { display: block; }
+
+    /* ── GRILLE POULES (4 colonnes) ─────────────────────── */
+    .pools-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      padding: 10px;
+    }
+
+    .pool-col {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .pool-header {
+      background: var(--primary);
+      color: #fff;
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 1rem;
+      font-weight: 800;
+      letter-spacing: .06em;
+      text-align: center;
+      text-transform: uppercase;
+    }
+
+    /* ── CARTE ───────────────────────────────────────────── */
+    .card {
+      background: var(--card);
+      border-radius: 8px;
+      padding: 10px 12px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.08);
+    }
+    .card-title {
+      font-size: .75rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--primary);
+      margin-bottom: 8px;
+      padding-bottom: 6px;
+      border-bottom: 2px solid var(--border);
+    }
+
+    /* ── TABLES ──────────────────────────────────────────── */
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+    th {
+      background: var(--primary);
+      color: #fff;
+      padding: 5px 5px;
+      font-size: .7rem;
+      font-weight: 700;
+      text-align: center;
+      white-space: nowrap;
+    }
+    td {
+      padding: 6px 5px;
+      border-bottom: 1px solid var(--border);
+      text-align: center;
+      vertical-align: middle;
+    }
+    tr:last-child td { border-bottom: none; }
+
+    .badge-terrain {
+      display: inline-block;
+      background: #e8f0fb;
+      color: var(--secondary);
+      border-radius: 4px;
+      padding: 1px 5px;
+      font-size: .68rem;
+      font-weight: 700;
+    }
+    .badge-tour {
+      display: inline-block;
+      background: var(--secondary);
+      color: #fff;
+      border-radius: 4px;
+      padding: 1px 5px;
+      font-size: .68rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .team-name { font-weight: 700; text-align: left; }
+    .team-winner { color: var(--success); }
+
+    .score-cell {
+      font-weight: 800;
+      font-size: .9rem;
+      white-space: nowrap;
+      letter-spacing: .04em;
+    }
+    .score-sep { color: var(--muted); font-weight: 400; margin: 0 2px; }
+
+    /* ── CLASSEMENT ─────────────────────────────────────── */
+    .rank-1 td:nth-child(2)::before { content: "🥇 "; }
+    .rank-2 td:nth-child(2)::before { content: "🥈 "; }
+    .rank-3 td:nth-child(2)::before { content: "🥉 "; }
+    .rank-1 { background: #fffbf0; }
+
+    /* ── GRILLE CHAMPIONNATS (2 colonnes) ───────────────── */
+    .champs-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      padding: 16px;
+    }
+    .champ-col { display: flex; flex-direction: column; gap: 10px; }
+    .champ-header {
+      background: var(--primary);
+      color: #fff;
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-size: 1.1rem;
+      font-weight: 800;
+      letter-spacing: .05em;
+      text-align: center;
+      text-transform: uppercase;
+    }
+
+    /* ── BRACKET ─────────────────────────────────────────── */
+    .bracket { display: flex; flex-direction: column; gap: 10px; }
+    .bm { border-radius: 8px; overflow: hidden; box-shadow: 0 1px 5px rgba(0,0,0,.1); }
+    .bm-header {
+      background: var(--primary);
+      color: #fff;
+      padding: 5px 12px;
+      font-size: .72rem;
+      font-weight: 800;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+    .bm-team {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 11px 14px;
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+    }
+    .bm-team:last-child { border-bottom: none; }
+    .bm-team.won { background: #f0fff6; }
+    .bm-name { font-weight: 700; font-size: 1rem; }
+    .bm-name.won { color: var(--success); }
+    .bm-score {
+      font-size: 1.5rem;
+      font-weight: 900;
+      color: var(--primary);
+      min-width: 36px;
+      text-align: right;
+    }
+    .bm-tbd { color: var(--muted); font-style: italic; }
+
+    /* ── CHAMPION BOX ────────────────────────────────────── */
+    .champion-box {
+      background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+      border-radius: 12px;
+      padding: 20px 16px;
+      text-align: center;
+      box-shadow: 0 4px 20px rgba(253,160,133,.45);
+    }
+    .champion-label { font-size: .9rem; font-weight: 700; color: rgba(0,0,0,.5); margin-bottom: 6px; }
+    .champion-name  { font-size: 2.2rem; font-weight: 900; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,.2); }
+
+    /* ── MISC ────────────────────────────────────────────── */
+    .loading {
+      text-align: center; padding: 30px 16px;
+      color: var(--muted); font-size: .9rem;
+    }
+    .error-box {
+      background: #fdecea; border: 1px solid #f5c6cb;
+      border-radius: 8px; padding: 12px; margin: 10px;
+      color: #c62828; font-size: .85rem; text-align: center;
+    }
+    .status-bar {
+      text-align: center; padding: 4px;
+      font-size: .72rem; color: var(--muted);
+      flex-shrink: 0;
+    }
+
+    .no-data {
+      text-align: center; padding: 20px;
+      color: var(--muted); font-style: italic; font-size: .85rem;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Tournoi du 14 mars 2026 – Challenge ROPIOT</h1>
+    <p id="last-update">—</p>
+  </div>
+  <button class="refresh-btn" id="refresh-btn" onclick="loadAll()">↻ Actualiser</button>
+</header>
+
+<nav class="main-tabs">
+  <button class="main-tab-btn active" data-target="tab-poules"   onclick="showTab(this)">POULES</button>
+  <button class="main-tab-btn"        data-target="tab-champs"   onclick="showTab(this)">CHAMPIONNATS</button>
+</nav>
+
+<!-- POULES PANEL -->
+<section id="tab-poules" class="tab-panel active">
+  <div class="pools-grid">
+    <div class="pool-col" id="col-A"><div class="loading">Chargement…</div></div>
+    <div class="pool-col" id="col-B"></div>
+    <div class="pool-col" id="col-C"></div>
+    <div class="pool-col" id="col-D"></div>
+  </div>
+</section>
+
+<!-- CHAMPIONNATS PANEL -->
+<section id="tab-champs" class="tab-panel">
+  <div class="champs-grid">
+    <div class="champ-col">
+      <div class="champ-header">Championnat A 🥇</div>
+      <div id="champ-a-content"><div class="loading">Chargement…</div></div>
+    </div>
+    <div class="champ-col">
+      <div class="champ-header">Championnat B 🥈</div>
+      <div id="champ-b-content"><div class="loading">Chargement…</div></div>
+    </div>
+  </div>
+</section>
+
+<div class="status-bar" id="status-bar"></div>
+
+<script>
+// ─── CONFIG ───────────────────────────────────────────────────────────────────
+const SHEET_ID = '1Bk11ThSuSbKxyDYb5iFdnxEn3ZWuWAeXcXh--5aFBhQ';
+
+function csvUrl(sheet) {
+  return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheet)}`;
+}
+
+// ─── CSV PARSER ───────────────────────────────────────────────────────────────
+function parseCSV(text) {
+  const rows = [];
+  for (const line of text.replace(/\r/g, '').split('\n')) {
+    if (!line.trim()) continue;
+    const row = [];
+    let inQuote = false, field = '';
+    for (let i = 0; i < line.length; i++) {
+      const c = line[i];
+      if (c === '"') {
+        if (inQuote && line[i + 1] === '"') { field += '"'; i++; }
+        else { inQuote = !inQuote; }
+      } else if (c === ',' && !inQuote) {
+        row.push(field); field = '';
+      } else {
+        field += c;
+      }
+    }
+    row.push(field);
+    rows.push(row);
+  }
+  return rows;
+}
+
+// ─── PARSE POULES ─────────────────────────────────────────────────────────────
+function parsePoules(rows) {
+  const pools = {
+    A: { matches: [], classement: [] },
+    B: { matches: [], classement: [] },
+    C: { matches: [], classement: [] },
+    D: { matches: [], classement: [] },
+  };
+  let cur = null, section = null;
+
+  for (const row of rows) {
+    const c0 = row[0] || '';
+    const pm = c0.match(/^POULE\s+([A-D])/);
+    if (pm) { cur = pm[1]; section = 'matches'; continue; }
+    if (c0.startsWith('CLASSEMENT')) { section = 'classement'; continue; }
+    if (!cur) continue;
+
+    if (section === 'matches' && row[4] === 'VS' && /^\d+$/.test(c0)) {
+      pools[cur].matches.push({
+        tour: row[0], terrain: row[1],
+        eq1: row[2], sc1: row[3], sc2: row[5], eq2: row[6], winner: row[7] || '',
+      });
+    }
+    if (section === 'classement' && /^[1-4](er|ème)$/.test(c0)) {
+      pools[cur].classement.push({
+        rang: c0, equipe: row[1], v: row[2], d: row[3], pts1: row[4], pts2: row[5],
+      });
+    }
+  }
+  return pools;
+}
+
+// ─── PARSE CHAMPIONNAT ────────────────────────────────────────────────────────
+function parseChampionnat(rows) {
+  const data = { demis: [], finale: null, champion: '' };
+  let section = null;
+  for (const row of rows) {
+    const c0 = row[0] || '';
+    if (c0.includes('DEMI'))  { section = 'demis';  continue; }
+    if (c0.includes('FINALE') && !c0.includes('DEMI')) { section = 'finale'; continue; }
+    if (c0 === 'Match') continue;
+    if (c0 === '🏆') { data.champion = row[1] || ''; continue; }
+    if (section === 'demis' && /^DF\d/.test(c0)) {
+      data.demis.push({ id: c0, eq1: row[1], sc1: row[2], sc2: row[4], eq2: row[5], winner: row[6] || '' });
+    }
+    if (section === 'finale' && c0 === 'FINALE') {
+      data.finale = { eq1: row[1], sc1: row[2], sc2: row[4], eq2: row[5], winner: row[6] || '' };
+    }
+  }
+  return data;
+}
+
+// ─── RENDER COLONNE POULE ─────────────────────────────────────────────────────
+function renderPoolCol(letter, data) {
+  let html = `<div class="pool-header">Poule ${letter}</div>`;
+
+  if (!data.matches.length) {
+    return html + `<div class="card"><div class="no-data">Aucune donnée.</div></div>`;
+  }
+
+  // Grouper par tour
+  const byTour = {};
+  for (const m of data.matches) {
+    (byTour[m.tour] = byTour[m.tour] || []).push(m);
+  }
+
+  // Matches
+  html += `<div class="card">
+    <div class="card-title">Matchs</div>
+    <div class="table-wrap"><table>
+      <thead><tr>
+        <th>T.</th><th>Terrain</th><th style="text-align:left">Équipe 1</th><th>Score</th><th style="text-align:left">Équipe 2</th>
+      </tr></thead><tbody>`;
+
+  for (const tour of Object.keys(byTour).sort()) {
+    for (const m of byTour[tour]) {
+      const s1 = m.sc1 !== '' ? m.sc1 : '–';
+      const s2 = m.sc2 !== '' ? m.sc2 : '–';
+      const w  = m.winner;
+      const w1 = w && w === m.eq1 ? 'team-winner' : '';
+      const w2 = w && w === m.eq2 ? 'team-winner' : '';
+      html += `<tr>
+        <td><span class="badge-tour">${m.tour}</span></td>
+        <td><span class="badge-terrain">${m.terrain}</span></td>
+        <td class="team-name ${w1}">${m.eq1}</td>
+        <td class="score-cell">${s1}<span class="score-sep">-</span>${s2}</td>
+        <td class="team-name ${w2}">${m.eq2}</td>
+      </tr>`;
+    }
+  }
+  html += `</tbody></table></div></div>`;
+
+  // Classement
+  if (data.classement.length) {
+    html += `<div class="card">
+      <div class="card-title">Classement</div>
+      <div class="table-wrap"><table>
+        <thead><tr>
+          <th>Rg</th><th style="text-align:left">Équipe</th><th>V</th><th>D</th><th>Pts+</th><th>Pts-</th>
+        </tr></thead><tbody>`;
+    data.classement.forEach((c, i) => {
+      const rc = i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : '';
+      html += `<tr class="${rc}">
+        <td>${c.rang}</td>
+        <td class="team-name">${c.equipe}</td>
+        <td>${c.v}</td><td>${c.d}</td><td>${c.pts1}</td><td>${c.pts2}</td>
+      </tr>`;
+    });
+    html += `</tbody></table></div></div>`;
+  }
+
+  return html;
+}
+
+// ─── RENDER CHAMPIONNAT ───────────────────────────────────────────────────────
+function bracketMatch(label, eq1, sc1, eq2, sc2, winner) {
+  const tbd = '<span class="bm-tbd">À déterminer</span>';
+  const w1 = winner && winner === eq1;
+  const w2 = winner && winner === eq2;
+  return `<div class="bm">
+    <div class="bm-header">${label}</div>
+    <div class="bm-team ${w1 ? 'won' : ''}">
+      <span class="bm-name ${w1 ? 'won' : ''}">${eq1 || tbd}</span>
+      <span class="bm-score">${sc1 || ''}</span>
+    </div>
+    <div class="bm-team ${w2 ? 'won' : ''}">
+      <span class="bm-name ${w2 ? 'won' : ''}">${eq2 || tbd}</span>
+      <span class="bm-score">${sc2 || ''}</span>
+    </div>
+  </div>`;
+}
+
+function renderChampionnat(data, labelChampion) {
+  let html = '<div class="bracket">';
+  if (data.demis.length) {
+    for (const df of data.demis) {
+      html += bracketMatch(df.id, df.eq1, df.sc1, df.eq2, df.sc2, df.winner);
+    }
+  }
+  if (data.finale) {
+    const f = data.finale;
+    html += bracketMatch('FINALE', f.eq1, f.sc1, f.eq2, f.sc2, f.winner);
+  }
+  html += '</div>';
+
+  const winner = data.finale && data.finale.winner;
+  if (winner) {
+    html += `<div class="champion-box" style="margin-top:10px">
+      <div class="champion-label">🏆 ${labelChampion}</div>
+      <div class="champion-name">${winner}</div>
+    </div>`;
+  }
+
+  if (!data.demis.length && !data.finale) {
+    return '<div class="no-data">Les phases finales débuteront après les poules.</div>';
+  }
+  return html;
+}
+
+// ─── NAVIGATION ───────────────────────────────────────────────────────────────
+function showTab(btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.main-tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(btn.dataset.target).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ─── CHARGEMENT ───────────────────────────────────────────────────────────────
+async function loadAll() {
+  const btn = document.getElementById('refresh-btn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Chargement…';
+  document.getElementById('status-bar').textContent = '';
+
+  try {
+    const [poulesText, champAText, champBText] = await Promise.all([
+      fetch(csvUrl('POULES')).then(r => { if (!r.ok) throw new Error('POULES ' + r.status); return r.text(); }),
+      fetch(csvUrl('CHAMPIONNAT A')).then(r => { if (!r.ok) throw new Error('CHAMP A ' + r.status); return r.text(); }),
+      fetch(csvUrl('CHAMPIONNAT B')).then(r => { if (!r.ok) throw new Error('CHAMP B ' + r.status); return r.text(); }),
+    ]);
+
+    const pools  = parsePoules(parseCSV(poulesText));
+    const champA = parseChampionnat(parseCSV(champAText));
+    const champB = parseChampionnat(parseCSV(champBText));
+
+    for (const p of ['A', 'B', 'C', 'D']) {
+      document.getElementById('col-' + p).innerHTML = renderPoolCol(p, pools[p]);
+    }
+
+    document.getElementById('champ-a-content').innerHTML = renderChampionnat(champA, 'Champion A');
+    document.getElementById('champ-b-content').innerHTML = renderChampionnat(champB, 'Champion B');
+
+    const now = new Date();
+    document.getElementById('last-update').textContent =
+      `Mis à jour à ${now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`;
+
+  } catch (e) {
+    console.error(e);
+    document.getElementById('status-bar').innerHTML =
+      `<div class="error-box">⚠️ Erreur de chargement : ${e.message}</div>`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '↻ Actualiser';
+  }
+}
+
+loadAll();
+</script>
+</body>
+</html>
