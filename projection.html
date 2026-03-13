@@ -59,6 +59,30 @@
     .refresh-btn:active { opacity: .75; }
     .refresh-btn:disabled { opacity: .5; cursor: wait; }
 
+    .header-btns { display: flex; gap: 8px; align-items: center; }
+    .auto-btn {
+      padding: 8px 14px;
+      background: transparent;
+      color: #fff;
+      border: 2px solid rgba(255,255,255,.4);
+      border-radius: 8px;
+      font-size: .85rem;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: border-color .2s, background .2s;
+    }
+    .auto-btn.on {
+      border-color: var(--success);
+      background: rgba(39,174,96,.25);
+    }
+    .countdown {
+      font-size: .72rem;
+      color: rgba(255,255,255,.6);
+      min-width: 32px;
+      text-align: center;
+    }
+
     /* ── TABS ────────────────────────────────────────────── */
     .main-tabs {
       display: flex;
@@ -282,7 +306,11 @@
     <h1>Tournoi du 14 mars 2026 – Challenge ROPIOT</h1>
     <p id="last-update">—</p>
   </div>
-  <button class="refresh-btn" id="refresh-btn" onclick="loadAll()">↻ Actualiser</button>
+  <div class="header-btns">
+    <span class="countdown" id="countdown"></span>
+    <button class="auto-btn" id="auto-btn" onclick="toggleAuto()">Auto ↻ OFF</button>
+    <button class="refresh-btn" id="refresh-btn" onclick="loadAll()">↻ Actualiser</button>
+  </div>
 </header>
 
 <nav class="main-tabs">
@@ -552,6 +580,46 @@ async function loadAll() {
   } finally {
     btn.disabled = false;
     btn.textContent = '↻ Actualiser';
+  }
+}
+
+// ─── AUTO-REFRESH ─────────────────────────────────────────────────────────────
+const AUTO_INTERVAL = 60; // secondes
+let autoTimer = null;
+let countdown  = AUTO_INTERVAL;
+
+function toggleAuto() {
+  if (autoTimer) {
+    stopAuto();
+  } else {
+    startAuto();
+  }
+}
+
+function startAuto() {
+  const btn = document.getElementById('auto-btn');
+  btn.textContent = 'Auto ↻ ON';
+  btn.classList.add('on');
+  countdown = AUTO_INTERVAL;
+  tickCountdown();
+  autoTimer = setInterval(tickCountdown, 1000);
+}
+
+function stopAuto() {
+  clearInterval(autoTimer);
+  autoTimer = null;
+  document.getElementById('auto-btn').textContent = 'Auto ↻ OFF';
+  document.getElementById('auto-btn').classList.remove('on');
+  document.getElementById('countdown').textContent = '';
+}
+
+function tickCountdown() {
+  document.getElementById('countdown').textContent = countdown + 's';
+  if (countdown <= 0) {
+    countdown = AUTO_INTERVAL;
+    loadAll();
+  } else {
+    countdown--;
   }
 }
 
