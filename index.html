@@ -609,9 +609,9 @@ function parsePoules(rows) {
         rang:  c0,
         equipe: row[1],
         v:      row[2],
-        d:      row[3],
-        pts1:   row[4],
-        pts2:   row[5],
+        pts1:   row[3],
+        pts2:   row[4],
+        diff:   row[5],
       });
     }
   }
@@ -703,7 +703,7 @@ function renderPool(letter, data, teams) {
       <div class="card-title">Classement Poule ${letter}</div>
       <div class="table-wrap"><table>
         <thead><tr>
-          <th>Rang</th><th>Équipe</th><th>V</th><th>D</th><th>Pts+</th><th>Pts-</th>
+          <th>Rang</th><th>Équipe</th><th>V</th><th>Pts+</th><th>Pts-</th><th>Diff</th>
         </tr></thead><tbody>`;
 
     data.classement.forEach((c, i) => {
@@ -711,7 +711,7 @@ function renderPool(letter, data, teams) {
       html += `<tr class="${rc}">
         <td>${c.rang}</td>
         <td class="team-name">${c.equipe}</td>
-        <td>${c.v}</td><td>${c.d}</td><td>${c.pts1}</td><td>${c.pts2}</td>
+        <td>${c.v}</td><td>${c.pts1}</td><td>${c.pts2}</td><td>${c.diff}</td>
       </tr>`;
     });
 

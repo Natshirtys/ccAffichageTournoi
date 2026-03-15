@@ -401,7 +401,7 @@ function parsePoules(rows) {
     }
     if (section === 'classement' && /^[1-4](er|ème)$/.test(c0)) {
       pools[cur].classement.push({
-        rang: c0, equipe: row[1], v: row[2], d: row[3], pts1: row[4], pts2: row[5],
+        rang: c0, equipe: row[1], v: row[2], pts1: row[3], pts2: row[4], diff: row[5],
       });
     }
   }
@@ -480,14 +480,14 @@ function renderPoolCol(letter, data) {
       <div class="card-title">Classement</div>
       <div class="table-wrap"><table>
         <thead><tr>
-          <th>Rg</th><th style="text-align:left">Équipe</th><th>V</th><th>D</th><th>Pts+</th><th>Pts-</th>
+          <th>Rg</th><th style="text-align:left">Équipe</th><th>V</th><th>Pts+</th><th>Pts-</th><th>Diff</th>
         </tr></thead><tbody>`;
     data.classement.forEach((c, i) => {
       const rc = i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : '';
       html += `<tr class="${rc}">
         <td>${c.rang}</td>
         <td class="team-name">${c.equipe}</td>
-        <td>${c.v}</td><td>${c.d}</td><td>${c.pts1}</td><td>${c.pts2}</td>
+        <td>${c.v}</td><td>${c.pts1}</td><td>${c.pts2}</td><td>${c.diff}</td>
       </tr>`;
     });
     html += `</tbody></table></div></div>`;
