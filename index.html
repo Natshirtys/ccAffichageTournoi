@@ -625,17 +625,24 @@ function parseChampionnat(rows) {
 
   for (const row of rows) {
     const c0 = row[0] || '';
-    if (c0.includes('DEMI'))  { section = 'demis';  continue; }
-    if (c0.includes('FINALE') && !c0.includes('DEMI')) { section = 'finale'; continue; }
     if (c0 === 'Match') continue;
     if (c0 === '🏆') { data.champion = row[1] || ''; continue; }
 
+    // Ligne de données demi-finale (avant détection de section pour ne pas être avalée)
     if (section === 'demis' && /^DF\d/.test(c0)) {
-      data.demis.push({ id: c0, eq1: row[1], sc1: row[2], sc2: row[4], eq2: row[5], winner: row[6] || '' });
+      const num = c0.replace('DF', '');
+      data.demis.push({ id: 'Demi-finale ' + num, eq1: row[1], sc1: row[2], sc2: row[4], eq2: row[5], winner: row[6] || '' });
+      continue;
     }
+    // Ligne de données finale
     if (section === 'finale' && c0 === 'FINALE') {
       data.finale = { eq1: row[1], sc1: row[2], sc2: row[4], eq2: row[5], winner: row[6] || '' };
+      continue;
     }
+
+    // Détection de section (après les lignes de données)
+    if (c0.includes('DEMI'))  { section = 'demis';  continue; }
+    if (c0.includes('FINALE') && !c0.includes('DEMI')) { section = 'finale'; continue; }
   }
   return data;
 }
